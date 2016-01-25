@@ -57,6 +57,45 @@ public final class JsonObject extends JsonElement {
     members.put(property, value);
   }
 
+  public JsonObject addAll(JsonObject mixin)
+  {
+    for (Map.Entry<String, JsonElement> entry : mixin.entrySet())
+    {
+      this.add(entry.getKey(), entry.getValue());
+    }
+
+    return this;
+  }
+
+  public JsonObject merge(JsonObject ... jsons)
+  {
+    for(JsonObject json : jsons)
+    {
+      for (Map.Entry<String, JsonElement> entry : json.entrySet())
+      {
+        String newKey =  entry.getKey();
+        JsonElement newValue = entry.getValue();
+
+        if ( this.has(newKey) )
+        {
+          JsonElement curValue = this.get(newKey);
+          if ( curValue.isJsonArray() && newValue.isJsonArray() )
+          {
+            ((JsonArray)curValue).addAll((JsonArray) newValue);
+          }
+          else if ( curValue.isJsonObject() && newValue.isJsonObject() )
+          {
+            newValue = ((JsonObject)curValue).merge((JsonObject)newValue);
+          }
+        }
+
+        this.add(newKey, newValue);
+      }
+    }
+
+    return this;
+  }
+
   /**
    * Removes the {@code property} from this {@link JsonObject}.
    *
